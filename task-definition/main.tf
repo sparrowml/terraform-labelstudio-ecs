@@ -12,30 +12,33 @@ resource "aws_ecs_task_definition" "labelstudio" {
         "cpu" : 1024,
         "memory" : 768,
         "essential" : true,
-        "environment" : [{
-        "name" : "DJANGO_DB",
-        "value" : "default"
-        },
-        {
-            "name" : "POSTGRE_NAME",
-            "value" : "postgres"
-        },
-        {
-            "name" : "POSTGRE_USER",
-            "value" : "${var.db_username}"
-        },
-        {
-            "name" : "POSTGRE_PASSWORD",
-            "value" : "${var.db_password}"
-        },
-        {
-            "name" : "POSTGRE_PORT",
-            "value" : "5432"
-        },
-        {
-            "name" : "POSTGRE_HOST",
-            "value" : "${var.db_host}"
-        }
+        "environment" : [
+            {
+                "name" : "DJANGO_DB",
+                "value" : "default"
+            },
+            {
+                "name" : "POSTGRE_NAME",
+                "value" : "postgres"
+            },
+            {
+                "name" : "POSTGRE_USER",
+                "value" : "${var.db_username}"
+            },
+            {
+                "name" : "POSTGRE_PORT",
+                "value" : "5432"
+            },
+            {
+                "name" : "POSTGRE_HOST",
+                "value" : "${var.db_host}"
+            }
+        ],
+        "secrets": [
+            {
+                "name": "POSTGRE_PASSWORD",
+                "valueFrom": "${var.secret_arn}"
+            }
         ],
         "portMappings" : [{
             "containerPort" : 8080,

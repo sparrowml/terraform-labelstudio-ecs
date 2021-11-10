@@ -80,6 +80,13 @@ resource "aws_cloudwatch_log_group" "logs" {
   name = local.log_group_name
 }
 
+module "secret" {
+  source = "../terraform-aws-sparrow/modules/secret"
+
+  name  = "${local.name}-db-password"
+  value = var.db_password
+}
+
 module "ecs_task_definition" {
   source = "./task-definition"
 
@@ -88,7 +95,7 @@ module "ecs_task_definition" {
   labelstudio_version = local.labelstudio_version
   db_host             = module.rds_instance.dns
   db_username         = var.db_username
-  db_password         = var.db_password
+  secret_arn          = module.secret.arn
   log_group_name      = local.log_group_name
 }
 

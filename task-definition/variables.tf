@@ -19,15 +19,14 @@ variable "db_username" {
   sensitive = true
 }
 
-variable "db_password" {
-  type      = string
-  sensitive = true
-}
-
 variable "db_host" {
   type = string
 }
 
 variable "log_group_name" {
+  type = string
+}
+
+variable "secret_arn" {
   type = string
 }
