@@ -10,6 +10,7 @@ terraform {
 locals {
   name                = "labelstudio"
   labelstudio_version = "1.3.0"
+  log_group_name      = "/ecs/labelstudio"
 }
 
 module "alb_security_group" {
@@ -39,7 +40,6 @@ module "ec2_security_group" {
     {
       port              = 80
       security_group_id = module.alb_security_group.id
-      my_ip             = true
     },
   ]
   all_egress = true
@@ -76,58 +76,26 @@ resource "aws_ecs_cluster" "app_cluster" {
   name = local.name
 }
 
-data "aws_caller_identity" "current" {}
+resource "aws_cloudwatch_log_group" "logs" {
+  name = local.log_group_name
+}
 
-resource "aws_ecs_task_definition" "labelstudio" {
-  family             = "service"
-  execution_role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.execution_role_name}"
-  container_definitions = jsonencode([
-    {
-      name      = local.name
-      image     = "heartexlabs/label-studio:${local.labelstudio_version}"
-      cpu       = 1024
-      memory    = 512
-      essential = true
-      environment = [
-        {
-          name  = "DJANGO_DB"
-          value = "default"
-        },
-        {
-          name  = "POSTGRE_NAME"
-          value = "postgres"
-        },
-        {
-          name  = "POSTGRE_USER"
-          value = var.db_username
-        },
-        {
-          name  = "POSTGRE_PASSWORD"
-          value = var.db_password
-        },
-        {
-          name  = "POSTGRE_PORT"
-          value = "5432"
-        },
-        {
-          name  = "POSTGRE_HOST"
-          value = module.rds_instance.dns
-        },
-      ]
-      portMappings = [
-        {
-          containerPort = 8080
-          hostPort      = 80
-        }
-      ]
-    }
-  ])
+module "ecs_task_definition" {
+  source = "./task-definition"
+
+  name                = local.name
+  task_role_name      = var.task_role_name
+  labelstudio_version = local.labelstudio_version
+  db_host             = module.rds_instance.dns
+  db_username         = var.db_username
+  db_password         = var.db_password
+  log_group_name      = local.log_group_name
 }
 
 resource "aws_ecs_service" "labelstudio" {
   name                               = local.name
   cluster                            = aws_ecs_cluster.app_cluster.id
-  task_definition                    = aws_ecs_task_definition.labelstudio.arn
+  task_definition                    = module.ecs_task_definition.arn
   desired_count                      = 1
   force_new_deployment               = true
   deployment_minimum_healthy_percent = 0
@@ -143,4 +111,17 @@ module "ec2_instance" {
   vpc_id             = var.vpc_id
   security_group_ids = [module.ec2_security_group.id]
   iam_role           = "ecsInstanceRole"
+}
+
+module "alb" {
+  source              = "../terraform-aws-sparrow/modules/alb"
+  name                = local.name
+  vpc_id              = var.vpc_id
+  security_group_ids  = [module.alb_security_group.id]
+  instance_ids        = [for i in module.ec2_instance : i.id]
+  acm_certificate_arn = var.acm_certificate_arn
+}
+
+output "host" {
+  value = module.alb.dns
 }

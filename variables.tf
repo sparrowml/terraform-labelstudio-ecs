@@ -2,7 +2,11 @@ variable "vpc_id" {
   type = string
 }
 
-variable "execution_role_name" {
+variable "task_role_name" {
+  type = string
+}
+
+variable "acm_certificate_arn" {
   type = string
 }
 
