@@ -95,6 +95,7 @@ module "ecs_task_definition" {
   labelstudio_version = local.labelstudio_version
   db_host             = module.rds_instance.dns
   db_username         = var.db_username
+  host                = var.host
   secret_arn          = module.secret.arn
   log_group_name      = local.log_group_name
 }

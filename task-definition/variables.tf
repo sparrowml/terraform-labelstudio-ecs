@@ -30,3 +30,7 @@ variable "log_group_name" {
 variable "secret_arn" {
   type = string
 }
+
+variable "host" {
+  type = string
+}

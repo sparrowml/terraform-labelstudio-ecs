@@ -32,6 +32,10 @@ resource "aws_ecs_task_definition" "labelstudio" {
             {
                 "name" : "POSTGRE_HOST",
                 "value" : "${var.db_host}"
+            },
+            {
+                "name" : "LABEL_STUDIO_HOST",
+                "value" : "${var.host}"
             }
         ],
         "secrets": [
