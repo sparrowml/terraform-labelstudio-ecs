@@ -3,8 +3,16 @@ data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
 resource "aws_ecs_task_definition" "labelstudio" {
-  family                = "service"
-  execution_role_arn    = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.task_role_name}"
+  family             = "service"
+  execution_role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.task_role_name}"
+
+  volume {
+    name = "efs"
+    efs_volume_configuration {
+      file_system_id = var.efs_id
+    }
+  }
+
   container_definitions = <<EOT
     [{
         "name" : "${var.name}",
@@ -12,6 +20,12 @@ resource "aws_ecs_task_definition" "labelstudio" {
         "cpu" : 1024,
         "memory" : 768,
         "essential" : true,
+        "mountPoints": [
+            {
+                "containerPath": "/label-studio",
+                "sourceVolume": "efs"
+            }
+        ],
         "environment" : [
             {
                 "name" : "DJANGO_DB",
@@ -36,6 +50,10 @@ resource "aws_ecs_task_definition" "labelstudio" {
             {
                 "name" : "LABEL_STUDIO_HOST",
                 "value" : "${var.host}"
+            },
+            {
+                "name": "LABEL_STUDIO_COPY_STATIC_DATA",
+                "value": "true"
             }
         ],
         "secrets": [

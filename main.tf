@@ -58,6 +58,19 @@ module "rds_security_group" {
   ]
 }
 
+module "efs_security_group" {
+  source = "../terraform-aws-sparrow/modules/security-group"
+
+  name   = "${local.name}-efs"
+  vpc_id = var.vpc_id
+  ingress = [
+    {
+      port              = 2049
+      security_group_id = module.ec2_security_group.id
+    },
+  ]
+}
+
 module "rds_instance" {
   source             = "../terraform-aws-sparrow/modules/rds-instance"
   name               = local.name
@@ -70,6 +83,14 @@ module "rds_instance" {
     username = var.db_username
     password = var.db_password
   }
+}
+
+module "efs" {
+  source = "../terraform-aws-sparrow/modules/efs"
+
+  name               = local.name
+  vpc_id             = var.vpc_id
+  security_group_ids = [module.efs_security_group.id]
 }
 
 resource "aws_ecs_cluster" "app_cluster" {
@@ -93,6 +114,7 @@ module "ecs_task_definition" {
   name                = local.name
   task_role_name      = var.task_role_name
   labelstudio_version = local.labelstudio_version
+  efs_id              = module.efs.id
   db_host             = module.rds_instance.dns
   db_username         = var.db_username
   host                = var.host
@@ -104,14 +126,14 @@ resource "aws_ecs_service" "labelstudio" {
   name                               = local.name
   cluster                            = aws_ecs_cluster.app_cluster.id
   task_definition                    = module.ecs_task_definition.arn
-  desired_count                      = 1
+  desired_count                      = 2
   force_new_deployment               = true
   deployment_minimum_healthy_percent = 0
 }
 
 module "ec2_instance" {
   source = "../terraform-aws-sparrow/modules/ec2-instance"
-  count  = 1
+  count  = 2
 
   name               = "${local.name}-${count.index}"
   ecs_cluster_name   = local.name

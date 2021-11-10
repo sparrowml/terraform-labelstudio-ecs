@@ -34,3 +34,7 @@ variable "secret_arn" {
 variable "host" {
   type = string
 }
+
+variable "efs_id" {
+  type = string
+}
