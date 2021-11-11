@@ -126,14 +126,14 @@ resource "aws_ecs_service" "labelstudio" {
   name                               = local.name
   cluster                            = aws_ecs_cluster.app_cluster.id
   task_definition                    = module.ecs_task_definition.arn
-  desired_count                      = 2
+  desired_count                      = 1
   force_new_deployment               = true
   deployment_minimum_healthy_percent = 0
 }
 
 module "ec2_instance" {
   source = "../terraform-aws-sparrow/modules/ec2-instance"
-  count  = 2
+  count  = 1
 
   name               = "${local.name}-${count.index}"
   ecs_cluster_name   = local.name

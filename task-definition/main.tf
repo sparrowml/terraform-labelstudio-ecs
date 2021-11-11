@@ -54,6 +54,10 @@ resource "aws_ecs_task_definition" "labelstudio" {
             {
                 "name": "LABEL_STUDIO_COPY_STATIC_DATA",
                 "value": "true"
+            },
+            {
+                "name": "LABEL_STUDIO_DISABLE_SIGNUP_WITHOUT_LINK",
+                "value": "true"
             }
         ],
         "secrets": [
