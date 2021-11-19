@@ -17,8 +17,8 @@ resource "aws_ecs_task_definition" "labelstudio" {
     [{
         "name" : "${var.name}",
         "image" : "heartexlabs/label-studio:${var.labelstudio_version}",
-        "cpu" : 1024,
-        "memory" : 768,
+        "cpu" : 2048,
+        "memory" : 1954,
         "essential" : true,
         "mountPoints": [
             {
