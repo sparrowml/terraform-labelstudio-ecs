@@ -14,7 +14,7 @@ locals {
 }
 
 module "alb_security_group" {
-  source = "../terraform-aws-sparrow/modules/security-group"
+  source = "git::https://github.com/sparrowml/terraform-aws-sparrow.git//modules/security-group?ref=0.0.1"
 
   name   = "${local.name}-alb"
   vpc_id = var.vpc_id
@@ -32,7 +32,7 @@ module "alb_security_group" {
 }
 
 module "ec2_security_group" {
-  source = "../terraform-aws-sparrow/modules/security-group"
+  source = "git::https://github.com/sparrowml/terraform-aws-sparrow.git//modules/security-group?ref=0.0.1"
 
   name   = "${local.name}-ec2"
   vpc_id = var.vpc_id
@@ -46,7 +46,7 @@ module "ec2_security_group" {
 }
 
 module "rds_security_group" {
-  source = "../terraform-aws-sparrow/modules/security-group"
+  source = "git::https://github.com/sparrowml/terraform-aws-sparrow.git//modules/security-group?ref=0.0.1"
 
   name   = "${local.name}-rds"
   vpc_id = var.vpc_id
@@ -59,7 +59,7 @@ module "rds_security_group" {
 }
 
 module "efs_security_group" {
-  source = "../terraform-aws-sparrow/modules/security-group"
+  source = "git::https://github.com/sparrowml/terraform-aws-sparrow.git//modules/security-group?ref=0.0.1"
 
   name   = "${local.name}-efs"
   vpc_id = var.vpc_id
@@ -72,13 +72,14 @@ module "efs_security_group" {
 }
 
 module "rds_instance" {
-  source             = "../terraform-aws-sparrow/modules/rds-instance"
+  source             = "git::https://github.com/sparrowml/terraform-aws-sparrow.git//modules/rds-instance?ref=0.0.1"
   name               = local.name
   engine             = "postgres"
-  instance_type      = "db.t4g.micro"
+  instance_type      = "db.t4g.small"
   vpc_id             = var.vpc_id
   security_group_ids = [module.rds_security_group.id]
   public             = false
+  apply_immediately  = true
   auth = {
     username = var.db_username
     password = var.db_password
@@ -86,7 +87,7 @@ module "rds_instance" {
 }
 
 module "efs" {
-  source = "../terraform-aws-sparrow/modules/efs"
+  source = "git::https://github.com/sparrowml/terraform-aws-sparrow.git//modules/efs?ref=0.0.1"
 
   name               = local.name
   vpc_id             = var.vpc_id
@@ -102,7 +103,7 @@ resource "aws_cloudwatch_log_group" "logs" {
 }
 
 module "secret" {
-  source = "../terraform-aws-sparrow/modules/secret"
+  source = "git::https://github.com/sparrowml/terraform-aws-sparrow.git//modules/secret?ref=0.0.1"
 
   name  = "${local.name}-db-password"
   value = var.db_password
@@ -126,25 +127,25 @@ resource "aws_ecs_service" "labelstudio" {
   name                               = local.name
   cluster                            = aws_ecs_cluster.app_cluster.id
   task_definition                    = module.ecs_task_definition.arn
-  desired_count                      = 1
+  desired_count                      = 2
   force_new_deployment               = true
   deployment_minimum_healthy_percent = 0
 }
 
 module "ec2_instance" {
-  source = "../terraform-aws-sparrow/modules/ec2-instance"
-  count  = 1
+  source = "git::https://github.com/sparrowml/terraform-aws-sparrow.git//modules/ec2-instance?ref=0.0.1"
+  count  = 2
 
   name               = "${local.name}-${count.index}"
   ecs_cluster_name   = local.name
-  instance_type      = "t3.micro"
+  instance_type      = "t3.small"
   vpc_id             = var.vpc_id
   security_group_ids = [module.ec2_security_group.id]
   iam_role           = "ecsInstanceRole"
 }
 
 module "alb" {
-  source              = "../terraform-aws-sparrow/modules/alb"
+  source              = "git::https://github.com/sparrowml/terraform-aws-sparrow.git//modules/alb?ref=0.0.1"
   name                = local.name
   vpc_id              = var.vpc_id
   security_group_ids  = [module.alb_security_group.id]
