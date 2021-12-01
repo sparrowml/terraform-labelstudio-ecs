@@ -9,7 +9,7 @@ terraform {
 
 locals {
   name                = "labelstudio"
-  labelstudio_version = "1.3.0"
+  labelstudio_version = "1.4.0"
   log_group_name      = "/ecs/labelstudio"
 }
 

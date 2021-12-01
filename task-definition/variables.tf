@@ -11,7 +11,7 @@ variable "task_role_name" {
 variable "labelstudio_version" {
   type        = string
   description = "The labelstudio version to use"
-  default     = "1.3.0"
+  default     = "1.4.0"
 }
 
 variable "db_username" {
