@@ -40,6 +40,7 @@ module "ec2_security_group" {
     {
       port              = 80
       security_group_id = module.alb_security_group.id
+      all_traffic       = true
     },
   ]
   all_egress = true
