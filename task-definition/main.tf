@@ -10,7 +10,6 @@ resource "aws_ecs_task_definition" "labelstudio" {
     name = "efs"
     efs_volume_configuration {
       file_system_id = var.efs_id
-      root_directory = "/data"
     }
   }
 
