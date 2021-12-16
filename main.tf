@@ -135,11 +135,11 @@ resource "aws_ecs_service" "labelstudio" {
 
 module "ec2_instance" {
   source = "git::https://github.com/sparrowml/terraform-aws-sparrow.git//modules/ec2-instance?ref=0.0.1"
-  count  = 2
+  count  = var.instance_count
 
   name               = "${local.name}-${count.index}"
   ecs_cluster_name   = local.name
-  instance_type      = "t3.small"
+  instance_type      = var.instance_type
   vpc_id             = var.vpc_id
   security_group_ids = [module.ec2_security_group.id]
   iam_role           = "ecsInstanceRole"
